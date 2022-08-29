@@ -73,6 +73,13 @@ label.place(height='60', width='210', x='2', y='2')
 
 
 ## ICONS ##
+#icon private session - coffee
+coffee_image = (Image.open("/home/pi/Downloads/coffee.png"))  ## Add image to rasp!!!!
+resized_coffee_image = coffee_image.resize((100,60), Image.ANTIALIAS)
+new_image_coffee = ImageTk.PhotoImage(resized_coffee_image)
+coffee_label=Label(win, image = new_image_coffee)
+coffee_label.place(height='120', width='180', relx=0.02, rely=0.2)
+
 #icon arrive
 open_image = (Image.open("/home/pi/Downloads/in.png"))
 resized_open_image = open_image.resize((100,60), Image.ANTIALIAS)
@@ -86,6 +93,13 @@ resized_leave_image = leave_image.resize((100,60), Image.ANTIALIAS)
 new_image_leave = ImageTk.PhotoImage(resized_leave_image)
 leave_label=Label(win, image = new_image_leave)
 leave_label.place(height='120', width='180', relx=0.5, rely=0.2)
+
+#icon doctor
+doctor_image = (Image.open("/home/pi/Downloads/doctor.png"))  ## Add image to rasp!!!!
+resized_doctor_image = doctor_image.resize((100,60), Image.ANTIALIAS)
+new_image_doctor = ImageTk.PhotoImage(resized_doctor_image)
+doctor_label=Label(win, image = new_image_doctor)
+doctor_label.place(height='120', width='180', relx=0.74, rely=0.2)
 
 
 ### REAL TIME ###
@@ -123,7 +137,7 @@ def ledToggle():
 
 
 def arrivalToggle():
-    var.set("Příthrthchod")
+    var.set("Příchod")
     global type
     type=1
     bg.set("green")
@@ -147,61 +161,76 @@ def doctorToggle():
     #pop.config(bg='blue')
     #label_middleTop["text"]="Lékař"
 
-def popup():
-    global pop
-    global img_arrow
-    pop =Toplevel()
-    pop.geometry("800x420+0+60")
-    print(bg.get())
-    #pop['bg']=bg.get
-    if bg=="blue":
-        pop.configure(bg="blue")
-        print("bg is blue ------")
-    if bg=="red":
-        pop.configure(bg="red")
-        print("bg is red ------")
-    if bg=="green":
-        pop.configure(bg="green")
-        print("bg is green ------")
-    endFont = tkinter.font.Font(family='Helvetica', size=24, weight="bold")
 
-    canvas = Canvas(pop,width=800, height=420)
-    canvas.pack()
-
-
-
-    #i = [1,2,3,4,5,6,7,8,9,10]
-    #for num in i:
-    #    print(num)
-    #    offset = 20*num
-    #    arrow_pic.place(height='400', width='100', x=offset, y='0')
-
-    #img_arrow = (Image.open("/home/pi/Downloads/green_arrow_crop.png"))
-    # Resize image
-    #resized_image_arrow = arrow.resize((100, 300), Image.ANTIALIAS)
-    #new_image_arrow = ImageTk.PhotoImage(resized_image_arrow)
-    # Create a Label Widget to display the text or Image
-    #label_arrow = Label(pop, image=new_image_arrow)
-    #label_arrow.place(height='300', width='100', x='150', y='150')
-
-
-    label_act = Label(pop, bg='#2C708A', textvariable=var, font=endFont)
-    label_act.place(height='80', width='300',relx=0.3, rely=0.15)
-    ##todo get method from API
-    #animation arrow
-    label_user = Label(pop, bg='#2C708A', text='Jan Novák', font=endFont)
-    label_user.place(height='80', width='300',relx=0.3, rely=0.4)
-    label_card = Label(pop, bg='#2C708A', text=CardValue, font=endFont)
-    label_card.place(height='80', width='300',relx=0.3, rely=0.65)
-
-    #pop.attributes('-fullscreen', True)
-    #pop.protocol("WM_DELETE_WINDOW", close)  # cleanup GPIO when user closes window
-    print("popup start")
-    pop.after(3000, popDestroy)
+def send_to_db():
+    global CardValue
+    CardValue = 0
+    print("data initialized to zero")
+    print(f"data: {var}")
+    # sending accuirated data to db
 
 def popDestroy():
+    send_to_db()
     pop.destroy()
     print("popup destroyed")
+
+def popup():
+    if CardValue != 0:
+        print(f"prijata data z kart jsou {CardValue}")
+        global pop
+        global img_arrow
+        pop = Toplevel()
+        pop.geometry("800x420+0+60")
+        print(bg.get())
+        # pop['bg']=bg.get
+        if bg == "blue":
+            pop.configure(bg="blue")
+            print("bg is blue ------")
+        if bg == "red":
+            pop.configure(bg="red")
+            print("bg is red ------")
+        if bg == "green":
+            pop.configure(bg="green")
+            print("bg is green ------")
+        endFont = tkinter.font.Font(family='Helvetica', size=24, weight="bold")
+
+        canvas = Canvas(pop, width=800, height=420)
+        canvas.pack()
+
+        # i = [1,2,3,4,5,6,7,8,9,10]
+        # for num in i:
+        #    print(num)
+        #    offset = 20*num
+        #    arrow_pic.place(height='400', width='100', x=offset, y='0')
+
+        # img_arrow = (Image.open("/home/pi/Downloads/green_arrow_crop.png"))
+        # Resize image
+        # resized_image_arrow = arrow.resize((100, 300), Image.ANTIALIAS)
+        # new_image_arrow = ImageTk.PhotoImage(resized_image_arrow)
+        # Create a Label Widget to display the text or Image
+        # label_arrow = Label(pop, image=new_image_arrow)
+        # label_arrow.place(height='300', width='100', x='150', y='150')
+
+        label_act = Label(pop, bg='#2C708A', textvariable=var, font=endFont)
+        label_act.place(height='80', width='300', relx=0.3, rely=0.15)
+        ##to do get method from API
+        # animation arrow
+        label_user = Label(pop, bg='#2C708A', text='Jan Novák', font=endFont)
+        label_user.place(height='80', width='300', relx=0.3, rely=0.4)
+        label_card = Label(pop, bg='#2C708A', text=CardValue, font=endFont)
+        label_card.place(height='80', width='300', relx=0.3, rely=0.65)
+
+        # pop.attributes('-fullscreen', True)
+        # pop.protocol("WM_DELETE_WINDOW", close)  # cleanup GPIO when user closes window
+        print("popup start")
+        pop.after(3000, popDestroy)
+
+    else:
+        print("error: no card inserted!!!!!!!!")
+
+
+
+
 
 
 def close():
@@ -246,11 +275,11 @@ label_middleTop.place(height='55', width='160',relx=0.4, rely=0.005)
 ### WIDGETS ###
 
 # Button, triggers the connected command when it is pressed
-ledButton = Button(win, text='Soukromě', font=myFont, command=ledToggle, fg='white', bg='#8f244b', height=5, width=24)
+ledButton = Button(win, text=new_image_coffee, font=myFont, command=ledToggle, fg='white', bg='#8f244b', height=5, width=24)
 ledButton.place(height='120', width='180', relx=0.02, rely=0.2)
 
 # Arrival button
-arrivalButton = Button(win, image=new_image_open, font=myFont,    command =arrivalToggle,fg='white', bg='#8f244b', height=5, width=24)
+arrivalButton = Button(win, image=new_image_open, font=myFont, command =arrivalToggle,fg='white', bg='#8f244b', height=5, width=24)
 arrivalButton.place(height='120', width='180', relx=0.26, rely=0.2)
 
 # Leave button
@@ -258,7 +287,7 @@ leaveButton = Button(win, image=new_image_leave, font=myFont, command=leaveToggl
 leaveButton.place(height='120', width='180', relx=0.5, rely=0.2)
 
 # Doctor button
-doctorButton = Button(win, text='Lékař', font=myFont, command=doctorToggle, fg='white',bg='#14155c', height=5, width=24)
+doctorButton = Button(win, text=new_image_doctor, font=myFont, command=doctorToggle, fg='white',bg='#14155c', height=5, width=24)
 doctorButton.place(height='120', width='180', relx=0.74, rely=0.2)
 
 # Help button - ack for simulation rfid
