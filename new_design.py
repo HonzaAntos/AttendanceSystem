@@ -119,36 +119,16 @@ def popup():
         print("_______")
         print(bg.get())
         print("_______")
-        # pop['bg']=bg.get
-
         endFont = tkinter.font.Font(family='Helvetica', size=24, weight="bold")
 
-        #canvas = Canvas(pop, width=800, height=420)
-        #canvas.pack()
-
-        # i = [1,2,3,4,5,6,7,8,9,10]
-        # for num in i:
-        #    print(num)
-        #    offset = 20*num
-        #    arrow_pic.place(height='400', width='100', x=offset, y='0')
-
-        # img_arrow = (Image.open("/home/pi/Downloads/green_arrow_crop.png"))
-        # Resize image
-        # resized_image_arrow = arrow.resize((100, 300), Image.ANTIALIAS)
-        # new_image_arrow = ImageTk.PhotoImage(resized_image_arrow)
-        # Create a Label Widget to display the text or Image
-        # label_arrow = Label(pop, image=new_image_arrow)
-        # label_arrow.place(height='300', width='100', x='150', y='150')
 
         pop_frame = customtkinter.CTkFrame(master=pop, width=800, height=420)
         pop_frame.place(x=0,y=0)
-        label_act = Label(pop, bg='#2C708A', textvariable=var, font=endFont)
+        label_act = customtkinter.CTkLabel(master=pop, bg_color='#2C708A', fg_color="gray15", corner_radius=10, textvariable=var,text_font=('Helvetica',30,"bold"))
         label_act.place(height='80', width='300', relx=0.3, rely=0.15)
-        ##to do get method from API
-        # animation arrow
-        label_user = Label(pop, bg='#2C708A', text='Jan Novák', font=endFont)
+        label_user = customtkinter.CTkLabel(master=pop, bg_color='#2C708A', fg_color="gray15" , corner_radius=10, text='Jan Novák',text_font=('Helvetica',30,"bold"))
         label_user.place(height='80', width='300', relx=0.3, rely=0.4)
-        label_card = Label(pop, bg='#2C708A', text=CardValue, font=endFont)
+        label_card = customtkinter.CTkLabel(master=pop, bg_color='#2C708A', fg_color="gray15", corner_radius=10, text=CardValue,text_font=('Helvetica',30,"bold"))
         label_card.place(height='80', width='300', relx=0.3, rely=0.65)
 
         if bg.get() == "blue":
@@ -164,14 +144,10 @@ def popup():
             pop_frame.configure(fg_color="brown")
             print("bg is brown ------")
         card_info.set("Stiskněte tlačítko!")
-        # pop.attributes('-fullscreen', True)
-        # pop.protocol("WM_DELETE_WINDOW", close)  # cleanup GPIO when user closes window
         print("popup start")
         pop.after(3000, popDestroy)
 
     else:
-        #label_down.configure(text="Přiložte kartu a stiskněte tlačítko!")
-        #card_info.set("Přiložte kartu a stiskněte tlačítko!")
         print("error: no card inserted!!!!!!!!")
 
 
@@ -182,9 +158,6 @@ def ledToggle():
     sleep(0.3)
     led.off()
     RPi.GPIO.output(buzz, RPi.GPIO.LOW)
-    #label_down.configure(text="Stiskněte tlačítko!")
-    #update()
-
 
 def arrivalToggle():
     var.set("Příchod")
@@ -247,35 +220,6 @@ button_coffee = customtkinter.CTkButton(master=root, command=coffeeToggle ,image
 button_coffee.place(height='120', width='160', x=20, rely=0.2)
 #button_coffee.grid(row=0,column=3, padx=20)
 
-
-
-### WIDGETS ###
-
-# Button, triggers the connected command when it is pressed
-#ledButton = Button(root, text=coffee_image, font=myFont, command=ledToggle, fg='white', bg='#8f244b', height=5, width=24)
-#ledButton.place(height='120', width='180', relx=0.02, rely=0.2)
-
-# Arrival button
-#arrivalButton = Button(root, image=open_image, font=myFont, command =arrivalToggle,fg='white', bg='#8f244b', height=5, width=24)
-
-# Leave button
-
-#leaveButton = Button(root, image=leave_image, font=myFont, command=leaveToggle, fg='white',bg='#14155c', height=5, width=24)
-#leaveButton.place(height='120', width='180', relx=0.5, rely=0.2)
-
-# Doctor button
-#doctorButton = Button(root, text=doctor_image, font=myFont, command=doctorToggle, fg='white',bg='#14155c', height=5, width=24)
-#doctorButton.place(height='120', width='180', relx=0.74, rely=0.2)
-
-# Help button - ack for simulation rfid
-#helpButton = Button(win, text='Potvrzení-tmp', font=myFont, command=popup, fg='white',bg='#333333', height=5, width=24)
-#helpButton.place(height='120', width='220', relx=0.35, rely=0.5)
-
-# Exit button
-
-
-
-###############
 bg = StringVar()
 bg.set("yellow")
 var = StringVar()
@@ -284,7 +228,6 @@ cardData = StringVar()
 cardData.set(rdm6300.CardData.value)
 
 
-"""
 ### REAL TIME ###
 def my_time():
     time_string = strftime('%H:%M:%S')  # time format
@@ -300,7 +243,6 @@ my_font = ('Helvetica', 30, 'bold')  # display size and style
 time_label = Label(root, font=my_font, bg='#2D708A')
 time_label.place(height='55', width='220',relx=0.72, rely=0.01)
 my_time()
-"""
 
 middleFont = tkinter.font.Font(family = 'Helvetica', size = 28, weight = "bold")
 
