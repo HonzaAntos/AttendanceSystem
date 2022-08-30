@@ -173,7 +173,10 @@ def doctorToggle():
     #label_middleTop["text"]="Lékař"
 
 def popup():
-    if CardValue:
+#    openClass = Reader()
+#    openClass.card_inserted()
+
+#    if CardValue:
             global pop
             global img_arrow
             pop =Toplevel()

@@ -49,6 +49,10 @@ class Reader(rdm6300.BaseReader):
     def invalid_card(self, card):
         print(f"invalid card {card}")
 
+    def card_data(self):
+        self.cardData=CardValue
+        print(f"card data {CardValue}")
+
 def rfidreader():
     while True:
         sleep(0.2)
