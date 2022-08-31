@@ -121,6 +121,10 @@ def popup():
         print("_______")
         endFont = tkinter.font.Font(family='Helvetica', size=24, weight="bold")
 
+        coffee_image_pop = ImageTk.PhotoImage(Image.open("/home/pi/Downloads/coffee.png").resize((200, 200), Image.ANTIALIAS))
+        open_image_pop = ImageTk.PhotoImage(Image.open("/home/pi/Downloads/in.png").resize((200, 200), Image.ANTIALIAS))
+        leave_image_pop = ImageTk.PhotoImage(Image.open("/home/pi/Downloads/out.png").resize((200, 200), Image.ANTIALIAS))
+        doctor_image_pop = ImageTk.PhotoImage(Image.open("/home/pi/Downloads/doctor.png").resize((200, 200), Image.ANTIALIAS))
 
         pop_frame = customtkinter.CTkFrame(master=pop, width=800, height=420)
         pop_frame.place(x=0,y=0)
@@ -130,18 +134,28 @@ def popup():
         label_user.place(height='80', width='300', relx=0.3, rely=0.4)
         label_card = customtkinter.CTkLabel(master=pop, bg_color='#2C708A', fg_color="gray15", corner_radius=10, text=CardValue,text_font=('Helvetica',30,"bold"))
         label_card.place(height='80', width='300', relx=0.3, rely=0.65)
+        label_icon = customtkinter.CTkButton(master=pop, width = 200, height = 200, text="", fg_color="black", border_width=0)
+        label_icon.place(x=10, y=120)
 
         if bg.get() == "blue":
             pop_frame.configure(fg_color="blue")
+            label_icon.configure(fg_color="blue")
+            label_icon.configure(image=doctor_image_pop)
             print("bg is blue ------")
         if bg.get() == "red":
             pop_frame.configure(fg_color="red")
+            label_icon.configure(fg_color="red")
+            label_icon.configure(image=leave_image_pop)
             print("bg is red ------")
         if bg.get() == "green":
             pop_frame.configure(fg_color="green")
+            label_icon.configure(fg_color="green")
+            label_icon.configure(image=open_image_pop)
             print("bg is green ------")
         if bg.get() == "brown":
             pop_frame.configure(fg_color="brown")
+            label_icon.configure(fg_color="brown")
+            label_icon.configure(image=coffee_image_pop)
             print("bg is brown ------")
         card_info.set("Stiskněte tlačítko!")
         print("popup start")
