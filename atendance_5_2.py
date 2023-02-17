@@ -43,7 +43,7 @@ class Reader(rdm6300.BaseReader): # read card ID
 
 
 # Setting theme dark/light
-customtkinter.set_appearance_mode("light")
+customtkinter.set_appearance_mode("dark")
 # customizable theme via json file
 customtkinter.set_default_color_theme("dark-blue")  # Themes: "blue" (standard), "green", "dark-blue"
 
@@ -689,14 +689,12 @@ def otherCard():
         firstCard=queue.get()
         secondCard = queue.get()
         print(firstCard,secondCard)
-        queue.put(secondCard)
+
         if firstCard != secondCard:
             print("THEY ARE NOT EQUAL.....REFRESH USER BY NEW ONE IMMEIDATELLY")
             if user_name:
                 logout()
                 erase()
-                #queue.put(secondCard)
-
            # close()
 
     #if user_name != 0:

@@ -1,17 +1,28 @@
 ## Toggle an LED when the GUI button is pressed ##
-import json
-from tkinter import *
-import tkinter.font
-import customtkinter
-import RPi.GPIO
-from time import strftime
-from time import sleep
-import time
-from PIL import ImageTk, Image
-import rdm6300
-import threading
-import requests
 import queue
+import threading
+import time
+from time import sleep
+from time import strftime
+from tkinter import *
+
+import RPi.GPIO
+import customtkinter
+import rdm6300
+import requests
+from PIL import ImageTk, Image
+
+### HARD WARE  DEFINITIONS ###
+RPi.GPIO.setmode(RPi.GPIO.BCM)
+#Set buzzer - pin 27 as output
+buzz=27
+RPi.GPIO.setup(buzz,RPi.GPIO.OUT, initial=RPi.GPIO.HIGH)
+RPi.GPIO.setwarnings(False)
+#Set fan - pin 27 as output
+fan=16
+RPi.GPIO.setup(fan,RPi.GPIO.OUT)
+RPi.GPIO.setwarnings(False)
+RPi.GPIO.output(fan, RPi.GPIO.HIGH)
 
 #create a queue for shared memory between threads
 queue=queue.Queue()
@@ -47,12 +58,8 @@ customtkinter.set_appearance_mode("light")
 # customizable theme via json file
 customtkinter.set_default_color_theme("dark-blue")  # Themes: "blue" (standard), "green", "dark-blue"
 
-### HARDWARE DEFINITIONS ###
-RPi.GPIO.setmode(RPi.GPIO.BCM)
-#Set buzzer - pin 27 as output
-buzz=27
-RPi.GPIO.setup(buzz,RPi.GPIO.OUT)
 # Identification number of this terminal to validate communication with API
+
 internalDeviceId = "0001"
 CardValue = 0
 clickCountAuthButton = 0
@@ -70,7 +77,7 @@ root.title("Attendace System")
 background_root = customtkinter.CTkFrame(master=root, fg_color=("gray90", "gray16"), height=480, width=800)
 background_root.place(x=0, y=0)
 
-# first window(idle window) - insert card label
+#first window(idle window) - insert card label
 logo = ImageTk.PhotoImage(Image.open("/home/pi/Downloads/logo.png").resize((210, 60), Image.ANTIALIAS))
 label_logo = customtkinter.CTkLabel(master=root, image=logo, bg_color=("gray90", "gray16"))
 label_logo.place(height='60', width='210', x='5', y='5')
@@ -78,18 +85,40 @@ label_logo.place(height='60', width='210', x='5', y='5')
 idle_label = customtkinter.CTkLabel(master=root, bg_color=("gray90", "gray16"),
                                     text="Přiložte prosím kartu",
                                     text_font=('Helvetica', 30, "bold"))
-idle_label.place(height='60', width='800', relx=0.0, rely=0.45)
+idle_label.place(height='60', width='700', relx=0.0, rely=0.48)
 # todo -arrow pointing to place where they have to put the card
 
 button_to_statuscodewindow = customtkinter.CTkButton(master=root, state='normal',command=lambda:standByButtonAuth(),
-                                                     fg_color="#ff0000",
+                                                     fg_color="#34b7eb",
                                                      bg_color=("gray90", "gray16"), text_color="black",
-                                                     text="auth", width=100, height=300,
+                                                     text="stiskněte", width=160, height=300,
                                                      corner_radius=10, border_width=3,
-                                                     text_font=('Helvetica', 20))
-button_to_statuscodewindow.place(height='320', width='80', relx=0.88, rely=0.2)
+                                                     text_font=('Helvetica', 24,'bold'))
+button_to_statuscodewindow.place(height='320', width='160', relx=0.78, rely=0.2)
 
-#functions to provide just one click on time and does not send multiple request
+hidden_button=customtkinter.CTkButton(master=root, state='normal',command=lambda:showPanel(),
+                                                     fg_color=("gray90", "gray16"),
+                                                     bg_color=("gray90","gray16"),
+                                                     width=10, height=10, border_width=0,text="")
+hidden_button.place(height='10', width='10', relx=0, rely=0.97)
+
+
+def hidePanel():
+    root.attributes('-fullscreen', True)
+    global hidden_button_show
+    hidden_button_show.place_forget()
+
+
+def showPanel():
+    root.attributes('-fullscreen', False)
+    global hidden_button_show
+    hidden_button_show = customtkinter.CTkButton(master=root, state='normal', command=lambda: hidePanel(),
+                                                 bg_color=("gray90", "gray16"),
+                                                 fg_color=("gray90", "gray16"),
+                                                 width=10, height=10, border_width=0,text="")
+    hidden_button_show.place(height='10', width='10', relx=0.03, rely=0.97)
+
+#functions to provide just one click on time and does not send multiple request....
 def clickCountAuthButtonReset():
     global clickCountAuthButton
     clickCountAuthButton=0
@@ -121,6 +150,8 @@ global user_name
 user_name=0
 global CardNumber
 CardNumber=0
+global array_actions
+array_actions=0
 
 # -------------------------authentication card number and id of device--------------------------------------------------
 # -------------------------POST    API/TERMINAL/AUTHORIZATION ----------------------------------------------------------
@@ -178,7 +209,7 @@ def authentication(CardValue):
             print(".........VALUES FOR QUEUE.......")
             #print(queue.get())
             #print(queue.get())
-            #print(queue.get())
+            #print(queue.get())i
             print(".........VALUES FOR QUEUE.......")
 
 # -----------------------------------------getting information about user-----------------------------------------------
@@ -186,8 +217,8 @@ def authentication(CardValue):
 def getUser():
     print(token)
     getUser = requests.get(
-        "https://api-dev-becvary.techcrowd.space/api/terminal/user",headers={'Authorization':'Bearer {}'.format(token)})
-    print("---------------get data---------------")
+        "https://api-dev-becvary.techcrowd.space/api/auth/logged-user",headers={'Authorization':'Bearer {}'.format(token)})
+    print("---------------get  data---------------")
     print(getUser.status_code)
     print(getUser.text)
 
@@ -211,8 +242,8 @@ def getUser():
     request_dict_get = getUser.json()
     global user_name
     user_name = StringVar()
-    user_firstname = request_dict_get['user']['firstname']
-    user_lastname = request_dict_get['user']['lastname']
+    user_firstname = request_dict_get['firstname']
+    user_lastname = request_dict_get['lastname']
     print(user_firstname,user_lastname)
     user_name = user_firstname + " " +user_lastname
     print(user_name)
@@ -222,7 +253,7 @@ def getUser():
 def getCardId():
     getCardId = requests.get(
         "https://api-dev-becvary.techcrowd.space/api/auth/logged-user",headers={'Authorization':'Bearer {}'.format(token)})
-    print("---------------get data---------------")
+    print("---------------getCardId data---------------")
     print(getCardId.status_code)
     print(getCardId.text)
     request_dict_get_logged_user = getCardId.json()
@@ -230,28 +261,120 @@ def getCardId():
     print("####################################################################")
     print(request_dict_get_logged_user)
     CardInfo = request_dict_get_logged_user ['cards']
+    if getCardId.status_code == 403:
+        # show screen with this status code
+        statusCodeText.set("403 api/action/active  ")
+        statusCodeWindow()
+
+    if getCardId.status_code == 401:
+        statusCodeText.set("401 api/action/active")
+        statusCodeWindow()
+
+    if getCardId.status_code == 400:
+        statusCodeText.set("api/action/active")
+        statusCodeWindow()
+
     global CardIds
     global CardIdsString
     global CardIdString
     global CardNumber
     global CardNumbersString
-    for CardNumber in CardInfo:
-        CardNumbers = CardNumber['cardNumber']
-        print(CardNumbers)
-        CardNumbersString=str(CardNumbers)
+    global list_cardIds
+    list_cardIds =[]
+    if getCardId.status_code == 200:
+        statusCodeText.set("")
+        for CardNumber in CardInfo:
+            CardNumbers = CardNumber['cardNumber']
+            print(CardNumbers)
+            CardNumbersString=str(CardNumbers)
 
-    CardNumber =int(CardNumbersString)
-    for CardId in CardInfo:
-        CardIds=CardId['id']
-        print(CardIds)
-        CardIdsString = str(CardIds)
-    CardIdString = CardIdsString[0]
-    CardId=int(CardIdString)
-    print("-----------CARD ID and NUMBER FROM LOGGED USER-----------")
-    print(CardId)
-    print(CardNumber)
-    print("----------------------------------------------")
+        CardNumber =int(CardNumbersString)
+        for CardId in CardInfo:
+            CardIds=CardId['id']
+            print(CardIds)#
+            list_cardIds.append(CardIds)
 
+        CardId=list_cardIds[0]
+        print("-----------CARD ID and NUMBER FROM LOGGED USER-----------")
+        print(CardId)
+        print(CardNumber)
+        print("----------------------------------------------")
+        getAction()
+
+#-----------------------------------get action list choosed by user-----------------------------------------------------
+#------------------------------------POST API/TERMINAL/ACTION-----------------------------------------------------------
+def getAction():
+    get_action = requests.get(
+        "https://api-dev-becvary.techcrowd.space/api/action/active",
+        headers={'Authorization': 'Bearer {}'.format(token)})
+    print("---------------getAction data---------------")
+    print(get_action.status_code)
+    print(get_action.text)
+    request_dict_get_action = get_action.json()
+    print(request_dict_get_action)
+    global action_one
+    global action_two
+    global action_three
+    global idActionsString
+    global array_actions
+    global idActions
+    global list_actions
+    list_actions =[]
+
+    if get_action.status_code == 403:
+        # show screen with this status code
+        statusCodeText.set("403 api/action/active  ")
+        statusCodeWindow()
+
+    if get_action.status_code == 401:
+        statusCodeText.set("401 api/action/active")
+        statusCodeWindow()
+
+    if get_action.status_code == 400:
+        statusCodeText.set("400 api/action/active")
+        statusCodeWindow()
+
+    if get_action.status_code == 200:
+        statusCodeText.set("")
+        for actions in request_dict_get_action:
+            global idActions
+            idActions = actions['id']
+            list_actions.append(idActions)
+            print(idActions)
+            #array_id=idActions
+            #idActionsString=str(idActions)
+
+        #idActionsString = str(idActions)
+        print("---------")
+        print(list_actions)
+
+        if len(list_actions)==1:
+            action_one=list_actions[0]
+            print("action ids avaiable...")
+            print(action_one)
+            array_actions=[action_one]
+            print("------------")
+
+        if len(list_actions)==2:
+            action_one=list_actions[0]
+            action_two=list_actions[1]
+            print("action ids avaiable...")
+            print(action_one)
+            print(action_two)
+            array_actions=[action_one,action_two]
+            print("------------")
+
+        if len(list_actions)==3:
+            action_one=list_actions[0]
+            action_two=list_actions[1]
+            action_three=list_actions[2]
+            print("action ids avaiable...")
+            print(action_one)
+            print(action_two)
+            print(action_three)
+            array_actions=[action_one,action_two,action_three]
+            print("------------")
+    print(array_actions)
 #-----------------------------------send action choosed by user---------------------------------------------------------
 #------------------------------------POST API/TERMINAL/ACTION-----------------------------------------------------------
 def action():
@@ -259,11 +382,11 @@ def action():
     print("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^")
     print(actionId,CardId,deviceId)
     print("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^")
-    payload = {'actionId':1 , 'cardId': 2,'deviceId':1}
+    payload = {'actionId':actionId , 'cardId': CardId,'deviceId':deviceId}
     print("===========>", payload)
     postAction = requests.post(
         "https://api-dev-becvary.techcrowd.space/api/terminal/action",headers={'Authorization':'Bearer {}'.format(token)}, json=payload)
-    print("---------------post data---------------")
+    print("---------------actionpost data---------------")
     print(postAction.status_code)
     print(postAction.text)
     if postAction.status_code == 403:
@@ -307,6 +430,10 @@ def erase():
     global token
     global CardValue
     global user_name
+    global array_actions
+    #global list_actions
+    #list_actions.clear()
+    array_actions = 0
     CardValue = 0
     user_name = 0
     token = 0
@@ -335,11 +462,12 @@ def mainWindow():
     global mainwindow
     mainwindow = Toplevel()
     mainwindow.geometry("800x480")
-    #mainwindow.overrideredirect(True)
+    mainwindow.overrideredirect(True)
     global var
+    global array_actions
     var = StringVar()
 
-    background_mainWindow = customtkinter.CTkFrame(master=mainwindow, fg_color=("gray20", "gray50"))
+    background_mainWindow = customtkinter.CTkFrame(master=mainwindow, fg_color=("gray80", "gray30"))
     background_mainWindow.place(x=0, y=0, height='480', width='800')
     # Create background label for top part
     label_top = customtkinter.CTkLabel(master=mainwindow, bg_color=("gray90", "gray16"))
@@ -357,57 +485,132 @@ def mainWindow():
     label_top_line.place(x='0', y='60', height='3', width='800')
 
     # create frame to hide background of the icons
-    frame1 = customtkinter.CTkFrame(master=mainwindow, corner_radius=25, bg_color=("gray20", "gray50"))
+    frame1 = customtkinter.CTkFrame(master=mainwindow, corner_radius=25, bg_color=("gray80", "gray30"))
     frame1.place(height='140', width='180', x=210, rely=0.18)
-    frame2 = customtkinter.CTkFrame(master=mainwindow, corner_radius=25, bg_color=("gray20", "gray50"))
+    frame2 = customtkinter.CTkFrame(master=mainwindow, corner_radius=25, bg_color=("gray80", "gray30"))
     frame2.place(height='140', width='180', x=10, rely=0.18)
-    frame3 = customtkinter.CTkFrame(master=mainwindow, corner_radius=25, bg_color=("gray20", "gray50"))
+    frame3 = customtkinter.CTkFrame(master=mainwindow, corner_radius=25, bg_color=("gray80", "gray30"))
     frame3.place(height='140', width='180', x=410, rely=0.18)
-    frame4 = customtkinter.CTkFrame(master=mainwindow, corner_radius=25, bg_color=("gray20", "gray50"))
+    frame4 = customtkinter.CTkFrame(master=mainwindow, corner_radius=25, bg_color=("gray80", "gray30"))
     frame4.place(height='140', width='180', x=610, rely=0.18)
 
     # frames for second row
-    frame5 = customtkinter.CTkFrame(master=mainwindow, corner_radius=25, bg_color=("gray20", "gray50"))
+    frame5 = customtkinter.CTkFrame(master=mainwindow, corner_radius=25, bg_color=("gray80", "gray30"))
     frame5.place(height='140', width='180', x=210, rely=0.52)
-    frame6 = customtkinter.CTkFrame(master=mainwindow, corner_radius=25, bg_color=("gray20", "gray50"))
+    frame6 = customtkinter.CTkFrame(master=mainwindow, corner_radius=25, bg_color=("gray80", "gray30"))
     frame6.place(height='140', width='180', x=10, rely=0.52)
-    frame7 = customtkinter.CTkFrame(master=mainwindow, corner_radius=25, bg_color=("gray20", "gray50"))
+    frame7 = customtkinter.CTkFrame(master=mainwindow, corner_radius=25, bg_color=("gray80", "gray30"))
     frame7.place(height='140', width='180', x=410, rely=0.52)
-    frame8 = customtkinter.CTkFrame(master=mainwindow, corner_radius=25, bg_color=("gray20", "gray50"))
+    frame8 = customtkinter.CTkFrame(master=mainwindow, corner_radius=25, bg_color=("gray80", "gray30"))
     frame8.place(height='140', width='180', x=610, rely=0.52)
     global button_in
     global button_out
     global button_doctor
     global button_coffee
-    button_in = customtkinter.CTkButton(master=mainwindow, command=mainWindowButtonOpen, hover_color="#09bd6f",
-                                        border_color="#0f0f0f", fg_color="#0dff96", image=open_image,
-                                        text="Příchod", text_color="black", width=160, height=120,
-                                        corner_radius=25, border_width=4, text_font=('Helvetica', 17, 'bold'),
-                                        bg_color=("gray90", "gray16"), compound="bottom")
-    button_in.place(height='120', width='160', x=220, rely=0.2)
+    lenList=len(array_actions)
 
-    button_out = customtkinter.CTkButton(master=mainwindow, command=mainWindowButtonLeave, hover_color="#bf3d3d",
-                                         border_color="#0f0f0f", fg_color="#ff5252", image=leave_image,
-                                         text="Odchod", text_color="black", width=160, height=120,
-                                         corner_radius=25, border_width=4, text_font=('Helvetica', 17, 'bold'),
-                                         bg_color=("gray90", "gray16"), compound="bottom")
-    button_out.place(height='120', width='160', x=420, rely=0.2)
+    print("-----------")
+    print(lenList)
+    print("-----------")
 
-    button_doctor = customtkinter.CTkButton(master=mainwindow, command=mainWindowButtonDoctor, hover_color="#2d56ad",
-                                            border_color="#0f0f0f", fg_color="#427bf5", image=doctor_image,
-                                            text="Lékař", text_color="black", width=160, height=120,
-                                            corner_radius=25, border_width=4,
-                                            text_font=('Helvetica', 17, 'bold'), bg_color=("gray90", "gray16"),
-                                            compound="bottom")
-    button_doctor.place(height='120', width='160', x=620, rely=0.2)
+    if lenList==1:
+        if array_actions[0] == 2:
+            button_in = customtkinter.CTkButton(master=mainwindow, command=mainWindowButtonOpen, hover_color="#09bd6f",
+                                                border_color="#0f0f0f", fg_color="#0dff96", image=open_image,
+                                                text="Příchod", text_color="black", width=160, height=120,
+                                                corner_radius=25, border_width=4, text_font=('Helvetica', 17, 'bold'),
+                                                bg_color=("gray90", "gray16"), compound="bottom")
+            button_in.place(height='120', width='160', x=20, rely=0.2)
+    #same code for other conditions
+        if array_actions[0] == 1:
+            button_out = customtkinter.CTkButton(master=mainwindow, command=mainWindowButtonLeave, hover_color="#bf3d3d",
+                                                 border_color="#0f0f0f", fg_color="#ff5252", image=leave_image,
+                                                 text="Odchod", text_color="black", width=160, height=120,
+                                                 corner_radius=25, border_width=4, text_font=('Helvetica', 17, 'bold'),
+                                                 bg_color=("gray90", "gray16"), compound="bottom")
+            button_out.place(height='120', width='160', x=220, rely=0.2)
 
-    button_coffee = customtkinter.CTkButton(master=mainwindow, command=mainWindowButtonCoffee, hover_color="#b37c30",
-                                            border_color="#0f0f0f", fg_color="#f5aa42", image=coffee_image,
-                                            text="Soukromě", text_color="black", width=160, height=120,
-                                            corner_radius=25, border_width=4,
-                                            text_font=('Helvetica', 17, 'bold'), bg_color=("gray90", "gray16"),
-                                            compound="bottom")
-    button_coffee.place(height='120', width='160', x=20, rely=0.2)
+        if array_actions[0] == 3:
+            button_doctor = customtkinter.CTkButton(master=mainwindow, command=mainWindowButtonDoctor, hover_color="#2d56ad",
+                                                    border_color="#0f0f0f", fg_color="#427bf5", image=doctor_image,
+                                                    text="Lékař", text_color="black", width=160, height=120,
+                                                    corner_radius=25, border_width=4,
+                                                    text_font=('Helvetica', 17, 'bold'), bg_color=("gray90", "gray16"),
+                                                    compound="bottom")
+            button_doctor.place(height='120', width='160', x=420, rely=0.2)
+
+    if lenList == 2:
+        if array_actions[0] == 2 or array_actions[1] == 2:
+            button_in = customtkinter.CTkButton(master=mainwindow, command=mainWindowButtonOpen, hover_color="#09bd6f",
+                                                border_color="#0f0f0f", fg_color="#0dff96", image=open_image,
+                                                text="Příchod", text_color="black", width=160, height=120,
+                                                corner_radius=25, border_width=4, text_font=('Helvetica', 17, 'bold'),
+                                                bg_color=("gray90", "gray16"), compound="bottom")
+            button_in.place(height='120', width='160', x=20, rely=0.2)
+
+        if array_actions[0] == 1 or array_actions[1] == 1:
+            button_out = customtkinter.CTkButton(master=mainwindow, command=mainWindowButtonLeave,
+                                                 hover_color="#bf3d3d",
+                                                 border_color="#0f0f0f", fg_color="#ff5252", image=leave_image,
+                                                 text="Odchod", text_color="black", width=160, height=120,
+                                                 corner_radius=25, border_width=4, text_font=('Helvetica', 17, 'bold'),
+                                                 bg_color=("gray90", "gray16"), compound="bottom")
+            button_out.place(height='120', width='160', x=220, rely=0.2)
+
+
+        if array_actions[0] == 3 or array_actions[1] == 3:
+            button_doctor = customtkinter.CTkButton(master=mainwindow, command=mainWindowButtonDoctor,
+                                                    hover_color="#2d56ad",
+                                                    border_color="#0f0f0f", fg_color="#427bf5", image=doctor_image,
+                                                    text="Lékař", text_color="black", width=160, height=120,
+                                                    corner_radius=25, border_width=4,
+                                                    text_font=('Helvetica', 17, 'bold'), bg_color=("gray90", "gray16"),
+                                                    compound="bottom")
+            button_doctor.place(height='120', width='160', x=420, rely=0.2)
+
+    if lenList > 2:
+        print("in if 3")
+        if array_actions[0] == 2 or array_actions[1] == 2 or array_actions[2] == 2:
+            print("in if 3 if...")
+            button_in = customtkinter.CTkButton(master=mainwindow, command=mainWindowButtonOpen,
+                                                hover_color="#09bd6f",
+                                                border_color="#0f0f0f", fg_color="#0dff96", image=open_image,
+                                                text="Příchod", text_color="black", width=160, height=120,
+                                                corner_radius=25, border_width=4,
+                                                text_font=('Helvetica', 17, 'bold'),
+                                                bg_color=("gray90", "gray16"), compound="bottom")
+            button_in.place(height='120', width='160', x=20, rely=0.2)
+
+        if array_actions[0] == 1 or array_actions[1] == 1 or array_actions[2] == 1:
+            button_out = customtkinter.CTkButton(master=mainwindow, command=mainWindowButtonLeave,
+                                                 hover_color="#bf3d3d",
+                                                 border_color="#0f0f0f", fg_color="#ff5252", image=leave_image,
+                                                 text="Odchod", text_color="black", width=160, height=120,
+                                                 corner_radius=25, border_width=4,
+                                                 text_font=('Helvetica', 17, 'bold'),
+                                                 bg_color=("gray90", "gray16"), compound="bottom")
+            button_out.place(height='120', width='160', x=220, rely=0.2)
+
+        if array_actions[0] == 3 or array_actions[1] == 3 or array_actions[2] == 3:
+            button_doctor = customtkinter.CTkButton(master=mainwindow, command=mainWindowButtonDoctor,
+                                                    hover_color="#2d56ad",
+                                                    border_color="#0f0f0f", fg_color="#427bf5",
+                                                    image=doctor_image,
+                                                    text="Lékař", text_color="black", width=160, height=120,
+                                                    corner_radius=25, border_width=4,
+                                                    text_font=('Helvetica', 17, 'bold'),
+                                                    bg_color=("gray90", "gray16"),
+                                                    compound="bottom")
+            button_doctor.place(height='120', width='160', x=420, rely=0.2)
+    else:
+        print("no actions")
+ #   button_coffee = customtkinter.CTkButton(master=mainwindow, command=mainWindowButtonCoffee, hover_color="#b37c30",
+ #                                           border_color="#0f0f0f", fg_color="#f5aa42", image=coffee_image,
+ #                                           text="Soukromě", text_color="black", width=160, height=120,
+ #                                           corner_radius=25, border_width=4,
+ #                                           text_font=('Helvetica', 20, 'bold'), bg_color=("gray90", "gray16"),
+ #                                           compound="bottom")
+ #   button_coffee.place(height='120', width='160', x=20, rely=0.2)
 
     cardData = StringVar()
     cardData.set(rdm6300.CardData.value)
@@ -436,8 +639,8 @@ def clickCountOpenButtonReset():
 def mainWindowButtonOpen():
     global clickCountButtonOpen
     clickCountButtonOpen = clickCountButtonOpen + 1
-    button_in.after(3000,
-                                     clickCountAuthButtonReset)  # after 10s clickCountAuthButtonReset is called
+    button_in.after(1000,
+                                     clickCountOpenButtonReset)  # after 10s clickCountAuthButtonReset is called
     if clickCountButtonOpen == 1:
         arrivalToggle()
 
@@ -448,7 +651,7 @@ def clickCountLeaveButtonReset():
 def mainWindowButtonLeave():
     global clickCountButtonLeave
     clickCountButtonLeave = clickCountButtonLeave + 1
-    button_out.after(3000,
+    button_out.after(1000,
                                      clickCountLeaveButtonReset)  # after 10s clickCountAuthButtonReset is called
     if clickCountButtonLeave == 1:
         leaveToggle()
@@ -460,7 +663,7 @@ def clickCountDoctorButtonReset():
 def mainWindowButtonDoctor():
     global clickCountButtonDoctor
     clickCountButtonDoctor = clickCountButtonDoctor + 1
-    button_doctor.after(3000,
+    button_doctor.after(1000,
                                      clickCountDoctorButtonReset)  # after 10s clickCountAuthButtonReset is called
     if clickCountButtonDoctor == 1:
         doctorToggle()
@@ -472,7 +675,7 @@ def clickCountCoffeeButtonReset():
 def mainWindowButtonCoffee():
     global clickCountButtonCoffee
     clickCountButtonCoffee = clickCountButtonCoffee + 1
-    button_coffee.after(3000,
+    button_coffee.after(1000,
                                      clickCountCoffeeButtonReset)  # after 10s clickCountAuthButtonReset is called
     if clickCountButtonCoffee == 1:
         coffeeToggle()
@@ -497,6 +700,7 @@ def statusCodeWindow():
         statuswindow_frame = customtkinter.CTkFrame(master=statuswindow, width=740, height=365,
                                                     bg_color="#ff5b4f",
                                                     border_width=3,
+                                                    fg_color=("gray90", "gray16"),
                                                     border_color="black")
         statuswindow_frame.place(x=30, y=90)
 
@@ -535,15 +739,17 @@ def popup():
         global pop
         global pop_frame
         global img_arrow
+
+
         pop = Toplevel()
         pop.geometry("800x480")
-        #pop.overrideredirect(True)
+        pop.overrideredirect(True)
 
         background_pop_frame = customtkinter.CTkFrame(master=pop, width=800, height=480, bg_color="gray16",
-                                                      fg_color="gray40")
+                                                      fg_color=("gray90", "gray16"))
         background_pop_frame.place(x=0, y=0)
 
-        pop_frame = customtkinter.CTkFrame(master=pop, width=720, height=380, bg_color="gray40", border_width=5,
+        pop_frame = customtkinter.CTkFrame(master=pop, width=720, height=380, bg_color=("gray90", "gray16"), border_width=5,
                                            border_color="black")
         pop_frame.place(x=40, y=50)
         label_act = customtkinter.CTkLabel(master=pop, bg_color=("gray90", "gray16"), corner_radius=10,
@@ -606,6 +812,7 @@ def buzzToggle():
     RPi.GPIO.output(buzz, RPi.GPIO.LOW)
     sleep(0.2)
     RPi.GPIO.output(buzz, RPi.GPIO.HIGH)
+
 def arrivalToggle():
     global actionId
     var.set("Příchod")
@@ -618,7 +825,7 @@ def leaveToggle():
     global actionId
     var.set("Odchod")
     bg.set("red")
-    actionId = 3
+    actionId = 1
     popup()
     action()
 
@@ -626,7 +833,7 @@ def doctorToggle():
     global actionId
     var.set("Lékař")
     bg.set("blue")
-    actionId=4
+    actionId=3
     popup()
     action()
 
@@ -634,7 +841,7 @@ def coffeeToggle():
     global actionId
     var.set("Soukromě")
     bg.set("brown")
-    actionId=1
+    actionId=4
     popup()
     action()
 
@@ -670,7 +877,7 @@ time_label.place(height='55', width='220', relx=0.72, rely=0.01)
 my_time()
 
 #Create a fullscreen window
-#root.attributes('-fullscreen', True)
+root.attributes('-fullscreen', True)
 root.protocol("WM_DELETE_WINDOW", close) # cleanup GPIO when user closes window
 
 #r = Reader('/dev/ttyS0')
@@ -683,7 +890,6 @@ def rfidreader():
    #     r.stop()
 
 def otherCard():
-    print("in other card function")
     if queue.qsize() >= 2:
         print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>...queue is equal or bigger than 2")
         firstCard=queue.get()
@@ -695,16 +901,6 @@ def otherCard():
             if user_name:
                 logout()
                 erase()
-                #queue.put(secondCard)
-
-           # close()
-
-    #if user_name != 0:
-     #   print("in user name condition")
-
-      #  if CardValue != CardNumber and (CardNumber != 0):
-       #     print("given number: ", CardValue, " VS number from logged user: ", CardNumber)
-
 
 def checker_thread():
     while True:
