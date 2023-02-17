@@ -13,6 +13,9 @@ import customtkinter
 import rdm6300
 import requests
 from PIL import ImageTk, Image
+from picamera import PiCamera
+from datetime import datetime
+
 
 ### HARD WARE  DEFINITIONS ###
 RPi.GPIO.setmode(RPi.GPIO.BCM)
@@ -56,7 +59,7 @@ class Reader(rdm6300.BaseReader): # read card ID
 
 
 # Setting theme dark/light
-customtkinter.set_appearance_mode("dark")
+customtkinter.set_appearance_mode("light")
 # customizable theme via json file
 customtkinter.set_default_color_theme("dark-blue")  # Themes: "blue" (standard), "green", "dark-blue"
 
@@ -523,6 +526,7 @@ def erase():
     print(CardValue)
     print(z)
 
+
 # ----------------------------okno s nabidkou moznosti vyberu (prichod, lekar, soukrome,....)---------------------------
 # nahrani obrazku
 logoTC = ImageTk.PhotoImage(Image.open("/home/pi/Downloads/logo.png").resize((185, 50), Image.ANTIALIAS))
@@ -837,6 +841,7 @@ doctor_image_pop = ImageTk.PhotoImage(
 
 
 def popup():
+
     buzzToggle()
     global cardNumber
     if CardValue != 0:
@@ -950,11 +955,13 @@ def coffeeToggle():
 def popDestroy():
     #action()
     pop.destroy()
+    takePhoto()
     print("popup destroyed")
 
 def mainwindowDestroy():
     if actionId != 0:
         action()
+    #logout()
     erase()
     logout()
     mainwindow.destroy()
@@ -990,6 +997,14 @@ root.protocol("WM_DELETE_WINDOW", close) # cleanup GPIO when user closes window
 
 #r = Reader('/dev/ttyS0')
 #r.start()
+
+
+def takePhoto():
+    now = datetime.now()  # current date and time
+    time_stamp = now.strftime('%d%m%Y_%H:%M:%S')
+    camera = PiCamera()
+    camera.capture('/home/pi/Desktop/attendance_photos/{}.jpg'.format(time_stamp))
+
 
 def rfidreader():
     r = Reader('/dev/ttyS0')

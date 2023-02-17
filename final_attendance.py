@@ -11,6 +11,8 @@ import customtkinter
 import rdm6300
 import requests
 from PIL import ImageTk, Image
+from picamera import PiCamera
+
 
 ### HARD WARE  DEFINITIONS ###
 RPi.GPIO.setmode(RPi.GPIO.BCM)
@@ -106,7 +108,7 @@ hidden_button.place(height='10', width='10', relx=0, rely=0.97)
 def hidePanel():
     root.attributes('-fullscreen', True)
     global hidden_button_show
-    hidden_button_show.place_forget()
+    #hidden_button_show.place_forget()
 
 
 def showPanel():
@@ -891,7 +893,7 @@ def rfidreader():
 
 def otherCard():
     if queue.qsize() >= 2:
-        print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>...queue is equal or bigger than 2")
+        print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>...queue is equal or bigger than 2")
         firstCard=queue.get()
         secondCard = queue.get()
         print(firstCard,secondCard)
