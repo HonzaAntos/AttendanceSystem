@@ -1,7 +1,7 @@
 # Dochazkový terminál 
 
 
-Webové stránky docházkového terminálu ![zde](https://terminal.techcrowd.cz/)
+Webové stránky docházkového terminálu [zde](https://terminal.techcrowd.cz/)
 
 
 ## Popis
