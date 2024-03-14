@@ -1,5 +1,9 @@
 # Dochazkový terminál 
 
+
+Webové stránky docházkového terminálu ![zde](https://terminal.techcrowd.cz/)
+
+
 ## Popis
 Vývoj a implementace docházkového terminálu pro systém evidence docházky. Projekt zahrnuje ověřování uživatelů pomocí RFID a kamery, vytvoření GUI, odesílání dat na server, vzdálenou správu a komunikace se zákazníkem
 
